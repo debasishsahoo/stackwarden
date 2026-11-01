@@ -1,7 +1,3 @@
-
-#### Feature Request (`.github/ISSUE_TEMPLATE/feature_request.md`)
-
-```markdown
 ---
 name: Feature Request
 about: Suggest an idea or enhancement for this project
