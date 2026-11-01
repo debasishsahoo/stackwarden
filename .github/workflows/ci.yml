@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+env:
+  # Instructs GitHub Actions runner to cleanly execute on Node 24 runtime
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
   lint-and-test:
     name: Test on Python ${{ matrix.python-version }}
@@ -28,17 +32,23 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: "pip"
 
-      - name: Install Dependencies
+      - name: Verify Environment and Pip Upgrade
         run: |
+          python --version
           python -m pip install --upgrade pip setuptools wheel
-          pip install -r requirements.txt
-          pip install -e .
 
-      - name: Syntax and Bytecode Compilation Check
+      - name: Install Project Dependencies
         run: |
-          python -m py_compile infraguardian/*.py
+          python -m pip install -r requirements.txt
+          python -m pip install -e .
 
-      - name: Execute Unit Test Suite
+      - name: Compile and Validate Syntax
+        run: |
+          python -m compileall infraguardian/
+
+      - name: Run Test Suite
+        env:
+          PYTHONPATH: ${{ github.workspace }}
         run: |
           python -m unittest discover -s tests -p "test_*.py" -v
 
@@ -56,11 +66,11 @@ jobs:
           python-version: "3.12"
           cache: "pip"
 
-      - name: Install Tool
+      - name: Install Package
         run: |
-          pip install -r requirements.txt
-          pip install -e .
+          python -m pip install -r requirements.txt
+          python -m pip install -e .
 
-      - name: Validate Local Directory
+      - name: Execute Policy Scan on Repository
         run: |
           infraguardian scan . --format terminal
